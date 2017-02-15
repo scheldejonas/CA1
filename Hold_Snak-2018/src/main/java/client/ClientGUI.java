@@ -1,23 +1,104 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package client;
 
-/**
- *
- * @author vikto
- */
-public class ClientGUI extends javax.swing.JFrame {
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import javax.swing.DefaultListModel;
+import javax.swing.DefaultListSelectionModel;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
+
+
+public class ClientGUI extends javax.swing.JFrame 
+{
+    private ClientController cc;
+    private ArrayList<String> users;
 
     /**
      * Creates new form ClientGUI
      */
-    public ClientGUI() {
+    public ClientGUI(ClientController cc) 
+    {
+        this.cc = cc;
+        this.users = new ArrayList<>();
+        
+        try
+        {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) 
+            {
+                if ("Windows".equals(info.getName())) 
+                {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch(Exception e){}
         initComponents();
+        jListUsers.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
+        setLocationRelativeTo(null);
     }
 
+    private void sendMessage()
+    {
+        String endMsg = getFinalMessage(jTextFieldMessage.getText());
+        cc.printMessage(endMsg);
+        jTextFieldMessage.setText("");
+    }
+    
+    private String getFinalMessage(String s)
+    {
+        String receiver = jListUsers.getSelectedValue();
+        if(receiver.equals("Everyone"))
+        {
+            receiver = "ALL";
+        }
+        String msg = "MSG#" + receiver + "#" + s;
+        return msg;
+    }
+    
+    public void populateMessageToChat(String receivedMsg)
+    {
+        String[] strAr = receivedMsg.split("#");
+        String formattedMsg = "";
+        formattedMsg += (strAr[1] + ": ");
+        formattedMsg += (strAr[2]) + "\n";
+        jTextAreaChat.append(formattedMsg);
+    }
+    
+    public void addUserToList(String s)
+    {
+        users.add(s);
+        populateUserList();
+    }
+    
+    public void addUsersToList(ArrayList<String> sArr)
+    {
+        for (String s : sArr) 
+        {
+            users.add(s);
+        }
+        populateUserList();
+    }
+    
+    private void populateUserList()
+    {
+        jListUsers.removeAll();
+        DefaultListModel dlm = new DefaultListModel();
+        dlm.addElement("Everyone");
+        for (String s : users) 
+        {
+            dlm.addElement(s);
+        }
+        jListUsers.setModel(dlm);
+        jListUsers.setSelectedIndex(0);
+    }
+    
+    public void removeUserFromList(String name)
+    {
+        users.remove(name);
+        populateUserList();
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -27,57 +108,97 @@ public class ClientGUI extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jScrollPaneMain = new javax.swing.JScrollPane();
+        jTextAreaChat = new javax.swing.JTextArea();
+        jScrollPaneUsers = new javax.swing.JScrollPane();
+        jListUsers = new javax.swing.JList<>();
+        jTextFieldMessage = new javax.swing.JTextField();
+        jButtonSend = new javax.swing.JButton();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Hold Snak 2018");
+        setResizable(false);
+
+        jScrollPaneMain.setBorder(javax.swing.BorderFactory.createTitledBorder("Chat Window"));
+
+        jTextAreaChat.setEditable(false);
+        jTextAreaChat.setColumns(20);
+        jTextAreaChat.setRows(5);
+        jScrollPaneMain.setViewportView(jTextAreaChat);
+        jTextAreaChat.getAccessibleContext().setAccessibleDescription("");
+
+        jScrollPaneUsers.setBorder(javax.swing.BorderFactory.createTitledBorder("Send To"));
+        jScrollPaneUsers.setToolTipText("");
+
+        jListUsers.setModel(new javax.swing.AbstractListModel<String>() {
+            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            public int getSize() { return strings.length; }
+            public String getElementAt(int i) { return strings[i]; }
+        });
+        jListUsers.setSelectedIndex(0);
+        jScrollPaneUsers.setViewportView(jListUsers);
+
+        jTextFieldMessage.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jTextFieldMessageKeyPressed(evt);
+            }
+        });
+
+        jButtonSend.setText("Send");
+        jButtonSend.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonSendActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPaneMain, javax.swing.GroupLayout.PREFERRED_SIZE, 597, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addComponent(jTextFieldMessage)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPaneUsers, javax.swing.GroupLayout.DEFAULT_SIZE, 186, Short.MAX_VALUE)
+                    .addComponent(jButtonSend, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPaneMain)
+                    .addComponent(jScrollPaneUsers, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jTextFieldMessage)
+                    .addComponent(jButtonSend, javax.swing.GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ClientGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ClientGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ClientGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ClientGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+    private void jButtonSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSendActionPerformed
+        sendMessage();
+    }//GEN-LAST:event_jButtonSendActionPerformed
+
+    private void jTextFieldMessageKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldMessageKeyPressed
+        if(KeyEvent.VK_ENTER == evt.getKeyCode())
+        {
+            sendMessage();
         }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new ClientGUI().setVisible(true);
-            }
-        });
-    }
-
+    }//GEN-LAST:event_jTextFieldMessageKeyPressed
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButtonSend;
+    private javax.swing.JList<String> jListUsers;
+    private javax.swing.JScrollPane jScrollPaneMain;
+    private javax.swing.JScrollPane jScrollPaneUsers;
+    private javax.swing.JTextArea jTextAreaChat;
+    private javax.swing.JTextField jTextFieldMessage;
     // End of variables declaration//GEN-END:variables
 }

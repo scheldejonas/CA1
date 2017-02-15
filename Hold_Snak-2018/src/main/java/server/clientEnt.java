@@ -1,4 +1,7 @@
+package server;
+
 import java.net.Socket;
+
  
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -11,8 +14,8 @@ import java.net.Socket;
  * @author William Bingo
  */
 public class clientEnt {
-    Socket sock;
-    String username;
+    private Socket sock;
+    private String username;
  
     public clientEnt(Socket sock, String username) {
         this.sock = sock;
