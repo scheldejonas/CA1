@@ -1,104 +1,112 @@
-
 package client;
 
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 
+public class ClientGUI extends javax.swing.JFrame {
 
-public class ClientGUI extends javax.swing.JFrame 
-{
-    private ClientController cc;
+    private Client client;
     private ArrayList<String> users;
 
     /**
      * Creates new form ClientGUI
      */
-    public ClientGUI(ClientController cc) 
-    {
-        this.cc = cc;
+    public ClientGUI() {
         this.users = new ArrayList<>();
-        
-        try
-        {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) 
-            {
-                if ("Windows".equals(info.getName())) 
-                {
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Windows".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
                 }
             }
-        } catch(Exception e){}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         initComponents();
         jListUsers.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
         setLocationRelativeTo(null);
     }
 
-    private void sendMessage()
-    {
-        String endMsg = getFinalMessage(jTextFieldMessage.getText());
-        cc.printMessage(endMsg);
-        jTextFieldMessage.setText("");
-    }
+    public void addClient(Client client) {
+        this.client = client;
+        jLabelLoggedInAs.setText("Logged in as: " + client.getName());
+    } 
     
-    private String getFinalMessage(String s)
-    {
+    private void sendMessage() throws IOException {
+        Runnable r = () -> {
+            String msg = jTextFieldMessage.getText();
+            if (msg.contains("#")) {
+                jTextFieldMessage.setText("");
+                return;
+            }
+            String endMsg = getFinalMessage(msg);
+            try {
+                client.sendMessage(endMsg);
+                String format = "";
+                if (jListUsers.getSelectedIndex() == 0) {
+                    format = client.getName() + ": " + jTextFieldMessage.getText() + System.lineSeparator();
+                } else {
+                    format = "*P* To " + jListUsers.getSelectedValue() + ": " + jTextFieldMessage.getText() + System.lineSeparator();
+                }
+                jTextAreaChat.append(format);
+                jTextFieldMessage.setText("");
+            } catch (IOException ex) {
+                Logger.getLogger(ClientGUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        };
+        Thread t = new Thread(r);
+        t.start();
+    }
+
+    private String getFinalMessage(String s) {
         String receiver = jListUsers.getSelectedValue();
-        if(receiver.equals("Everyone"))
-        {
+        if (receiver.equals("Everyone")) {
             receiver = "ALL";
         }
         String msg = "MSG#" + receiver + "#" + s;
         return msg;
     }
-    
-    public void populateMessageToChat(String receivedMsg)
-    {
-        String[] strAr = receivedMsg.split("#");
-        String formattedMsg = "";
-        formattedMsg += (strAr[1] + ": ");
-        formattedMsg += (strAr[2]) + "\n";
-        jTextAreaChat.append(formattedMsg);
+
+    public void readMessage(String receivedMsg) {
+        jTextAreaChat.append(receivedMsg);
     }
-    
-    public void addUserToList(String s)
-    {
+
+    public void addUserToList(String s) {
         users.add(s);
         populateUserList();
     }
-    
-    public void addUsersToList(ArrayList<String> sArr)
-    {
-        for (String s : sArr) 
-        {
+
+    public void addUsersToList(ArrayList<String> sArr) {
+        for (String s : sArr) {
             users.add(s);
         }
         populateUserList();
     }
-    
-    private void populateUserList()
-    {
+
+    public void populateUserList() {
         jListUsers.removeAll();
         DefaultListModel dlm = new DefaultListModel();
         dlm.addElement("Everyone");
-        for (String s : users) 
-        {
+        for (String s : users) {
             dlm.addElement(s);
         }
         jListUsers.setModel(dlm);
         jListUsers.setSelectedIndex(0);
     }
-    
-    public void removeUserFromList(String name)
-    {
+
+    public void removeUserFromList(String name) {
         users.remove(name);
         populateUserList();
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -114,6 +122,7 @@ public class ClientGUI extends javax.swing.JFrame
         jListUsers = new javax.swing.JList<>();
         jTextFieldMessage = new javax.swing.JTextField();
         jButtonSend = new javax.swing.JButton();
+        jLabelLoggedInAs = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Hold Snak 2018");
@@ -151,6 +160,8 @@ public class ClientGUI extends javax.swing.JFrame
             }
         });
 
+        jLabelLoggedInAs.setText("Logged in as: ");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -164,14 +175,20 @@ public class ClientGUI extends javax.swing.JFrame
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPaneUsers, javax.swing.GroupLayout.DEFAULT_SIZE, 186, Short.MAX_VALUE)
-                    .addComponent(jButtonSend, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(jButtonSend, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(jLabelLoggedInAs, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPaneMain)
-                    .addComponent(jScrollPaneUsers, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPaneMain, javax.swing.GroupLayout.PREFERRED_SIZE, 380, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPaneUsers, javax.swing.GroupLayout.PREFERRED_SIZE, 354, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabelLoggedInAs)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jTextFieldMessage)
@@ -183,18 +200,26 @@ public class ClientGUI extends javax.swing.JFrame
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSendActionPerformed
-        sendMessage();
+        try {
+            sendMessage();
+        } catch (IOException ex) {
+            Logger.getLogger(ClientGUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_jButtonSendActionPerformed
 
     private void jTextFieldMessageKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldMessageKeyPressed
-        if(KeyEvent.VK_ENTER == evt.getKeyCode())
-        {
-            sendMessage();
+        if (KeyEvent.VK_ENTER == evt.getKeyCode()) {
+            try {
+                sendMessage();
+            } catch (IOException ex) {
+                Logger.getLogger(ClientGUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }//GEN-LAST:event_jTextFieldMessageKeyPressed
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonSend;
+    private javax.swing.JLabel jLabelLoggedInAs;
     private javax.swing.JList<String> jListUsers;
     private javax.swing.JScrollPane jScrollPaneMain;
     private javax.swing.JScrollPane jScrollPaneUsers;

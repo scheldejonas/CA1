@@ -1,32 +1,57 @@
 package client;
 
+import client.ClientGUI;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Random;
 import java.util.Scanner;
- 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * A client which connects to a server.
  */
 public class Client {
- 
+
     private final String host;
     private final int port;
     private Socket clientSocket;
- 
-    public Client(String host, int port) {
+    private ClientGUI gui;
+    private String name;
+
+    public Client(String host, int port, String name) {
         this.host = host;
         this.port = port;
-        readThread();
+        this.name = name;
+        try {
+            open();
+            readThread();
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
     }
- 
+
+    public String getName() {
+        return name;
+    }
+    
+    public boolean isConnected() {
+        return clientSocket.isConnected();
+    }
+    
     public void open() throws IOException {
         clientSocket = new Socket();
         clientSocket.connect(new InetSocketAddress(host, port));
         System.out.println("Client connected to server on port " + port);
+        sendMessage("LOGIN#" + name);
     }
- 
+
+    public void addGUI(ClientGUI gui) {
+        this.gui = gui;
+    }
+    
     /**
      * Sends a message to the server by opening a socket, writing to the input and reading from the output.
      *
@@ -36,11 +61,11 @@ public class Client {
     public void sendMessage(String message) throws IOException {
         // Write to the server
         OutputStream output = clientSocket.getOutputStream();
-        PrintWriter writer = new PrintWriter(output);
+        PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(output, "UTF-8")), true);
         writer.println(message);
         writer.flush();
     }
- 
+
     /**
      * Reads a message from the server, if connected.
      *
@@ -50,24 +75,29 @@ public class Client {
     public String readMessage() throws IOException {
         // Read from the server
         InputStream input = clientSocket.getInputStream();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(input, "UTF-8"));
         String fromServer;
         while ((fromServer = reader.readLine()) == null) {
             // Wait until the server says something interesting
         }
         return fromServer;
     }
-   
+    
     public void readThread() {
         Runnable r = new Runnable() {
             @Override
             public void run() {
                 while (true) {
-                    try {
+                    if (clientSocket != null && clientSocket.isConnected()) {
+                        try {
                         //System.out.println("Waiting for repsonse...");
-                        System.out.println(readMessage());
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                            String message = (readMessage());
+                            System.out.println("Received message: " + message);
+                            handleMessage(message);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            break;
+                        }
                     }
                 }
             }
@@ -75,7 +105,40 @@ public class Client {
         Thread t = new Thread(r);
         t.start();
     }
-   
+    
+    public void handleMessage(String received) {
+        String[] split = received.split("#");
+        if (split.length > 1) {
+            String command = split[0];
+            switch (command.toUpperCase()) {
+                case "OK":
+                    for (int i = 1; i < split.length; i++) {
+                        gui.addUserToList(split[i]);
+                    }
+                    break;
+                
+                case "UPDATE":
+                    gui.addUserToList(split[1]);
+                    break;
+                    
+                case "MSG":
+                    String sender = split[1];
+                    String msg = split[2];
+                    gui.readMessage(sender + ": " + msg + System.lineSeparator());
+                    break;
+                    
+                case "DELETE":
+                    gui.removeUserFromList(split[1]);
+                    break;
+                    
+                default:
+                    
+                    break;
+                
+            }
+        }
+    }
+    
     public void writeConsoleThread() {
         Runnable r = new Runnable() {
             @Override
@@ -95,7 +158,7 @@ public class Client {
         Thread t = new Thread(r);
         t.start();
     }
-   
+    
     public void writeThread() {
         Runnable r = new Runnable() {
             @Override
@@ -124,9 +187,9 @@ public class Client {
         Thread t = new Thread(r);
         t.start();
     }
- 
+
     public static void main(String[] args) throws IOException {
-        Client client = new Client("83.95.174.124", 8081);
+        Client client = new Client("83.95.174.124", 8081, "Tester");
         client.open();
         //System.out.println("1) Opened connection....");
         //client.sendMessage("LOGIN#TEST");
@@ -135,5 +198,5 @@ public class Client {
         //client.writeThread();
         client.writeConsoleThread();
     }
- 
+
 }

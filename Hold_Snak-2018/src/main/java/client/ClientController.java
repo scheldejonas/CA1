@@ -1,41 +1,31 @@
-
 package client;
 
-import java.util.ArrayList;
-import javax.swing.JOptionPane;
+public class ClientController {
 
-
-public class ClientController implements Runnable
-{
     private ClientGUI gui;
-    private String name;
+    private Client client;
 
-    public ClientController()
-    {
-        this.name = "";
-        gui = new ClientGUI(this);
-    }
+    private String name, host;
+    private int port;
     
-    @Override
-    public void run() 
-    {
-        String error = "";
-        ArrayList<String> bingo = new ArrayList<>();
-        gui.addUsersToList(bingo);
-        gui.setVisible(true);
-    }
-    
-    public static void main(String[] args) 
-    {
-        ClientController cc = new ClientController();
-        Thread t = new Thread(cc);
-        t.run();
-    }
-    
-    public void printMessage(String msg)
-    {
-        gui.populateMessageToChat(msg);
+    public ClientController(String name, String host, int port) {
+        this.name = name;
+        this.host = host;
+        this.port = port;
     }
 
+    public boolean run() {
+        client = new Client(host, port, name);
+        if (client.isConnected()) {
+            gui = new ClientGUI();
+            gui.populateUserList();
+            gui.addClient(client);
+            client.addGUI(gui);
+            gui.setVisible(true);
+            return true;
+        }
+        System.out.println("Error, client not connected!");
+        return false;
+    }
     
 }

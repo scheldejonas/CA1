@@ -1,31 +1,22 @@
-
 package client;
 
 import javax.swing.JOptionPane;
 
+public class ClientGUIStart extends javax.swing.JFrame {
 
-public class ClientGUIStart extends javax.swing.JFrame 
-{
-    String name;
-    String port;
-    String ip;
-    public ClientGUIStart() 
-    {
-        try
-        {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) 
-            {
-                if ("Windows".equals(info.getName())) 
-                {
+    public ClientGUIStart() {
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Windows".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
                 }
             }
-        } catch(Exception e){}
+        } catch (Exception e) {
+        }
         initComponents();
         setLocationRelativeTo(null);
     }
-
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -55,9 +46,15 @@ public class ClientGUIStart extends javax.swing.JFrame
 
         jLabel1.setText("Ip:");
 
+        jTextFieldIp.setText("51.15.56.53");
+
         jLabel2.setText("Port:");
 
+        jTextFieldPort.setText("8081");
+
         jLabel3.setText("Name:");
+
+        jTextFieldName.setText("Test1");
 
         jLabel4.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
         jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -124,23 +121,25 @@ public class ClientGUIStart extends javax.swing.JFrame
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConnectActionPerformed
-        ClientController con = new ClientController();
-        this.dispose();
+        try {
+            if (jTextFieldName.getText().contains("#")) {
+                JOptionPane.showMessageDialog(null, "Do not use # in your username, please!");
+            }
+            int portNumnber = Integer.parseInt(jTextFieldPort.getText());
+            ClientController con = new ClientController(jTextFieldName.getText(), jTextFieldIp.getText(), portNumnber);
+            if (con.run()) {
+                this.dispose();
+            }
+        } catch (Exception e){
+            JOptionPane.showMessageDialog(null, "Please enter proper information!");
+        }
+        
     }//GEN-LAST:event_jButtonConnectActionPerformed
 
-    public void makeConnection()
-    {
-        
-    }
-    
-    public static void main(String[] args) 
-    {
+    public static void main(String[] args) {
         ClientGUIStart guiStart = new ClientGUIStart();
         guiStart.setVisible(true);
-        String name = guiStart.jTextFieldName.getText();
-        
     }
-    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonConnect;

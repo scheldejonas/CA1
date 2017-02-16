@@ -37,6 +37,10 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="jScrollPaneUsers" pref="186" max="32767" attributes="0"/>
                   <Component id="jButtonSend" max="32767" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="10" pref="10" max="-2" attributes="0"/>
+                      <Component id="jLabelLoggedInAs" max="32767" attributes="0"/>
+                  </Group>
               </Group>
           </Group>
       </Group>
@@ -44,9 +48,13 @@
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" attributes="0">
-              <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                  <Component id="jScrollPaneMain" max="32767" attributes="0"/>
-                  <Component id="jScrollPaneUsers" pref="380" max="32767" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="jScrollPaneMain" min="-2" pref="380" max="-2" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <Component id="jScrollPaneUsers" min="-2" pref="354" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jLabelLoggedInAs" min="-2" max="-2" attributes="0"/>
+                  </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" max="-2" attributes="0">
@@ -125,6 +133,11 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonSendActionPerformed"/>
       </Events>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabelLoggedInAs">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Logged in as: "/>
+      </Properties>
     </Component>
   </SubComponents>
 </Form>
