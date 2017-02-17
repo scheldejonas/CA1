@@ -16,7 +16,9 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,19 +28,30 @@ import java.util.logging.Logger;
  */
 public class serverHandler extends Thread {
 
-    private ArrayList<clientEnt> bingo;
+    
+    /*
+    Store all incoming connections inside an ArrayList called arrClients, which 
+    saves the username, and the socket used as they connect to the server
+    */
+    private ArrayList<clientEnt> arrClients;
+    private String timeStamp = new SimpleDateFormat("dd-MM-yyyy --- HH:mm:ss").format(Calendar.getInstance().getTime());
 
     public boolean userExistsUsername(String username) {
-        for (clientEnt c : bingo) {
+        for (clientEnt c : arrClients) {
             if (c.getUsername().equalsIgnoreCase(username)) {
                 return true;
             }
         }
         return false;
     }
+    
+    /*
+    Checks if the given socket exists inside the array @arrClients. 
+    Returns a boolean, true in case the element already exists, false otherwise
+    */
 
     public boolean userExistsSocket(Socket client) {
-        for (clientEnt c : bingo) {
+        for (clientEnt c : arrClients) {
             if (c.getSock().equals(client)) {
                 return true;
             }
@@ -46,38 +59,39 @@ public class serverHandler extends Thread {
         return false;
     }
 
+    /*
+    Starts the server. Given a host (IP) and the port which the server runs on. 
+    Only once given a connection, the method @accept, which is a subclass from 
+    the socket class, will return true, which calls the @handleConnection(Socket) method
+    */
+    
     public void startServer(String host, int port) throws IOException {
-        // Create a new unbound socket
         ServerSocket socket = new ServerSocket();
-        // Bind to a port number
         socket.bind(new InetSocketAddress(host, port));
 
-        System.out.println("Server listening on port " + port);
+        System.out.println(timeStamp + " Server listening on port " + port);
 
-        // Wait for a connection
         Socket connection;
         while ((connection = socket.accept()) != null) {
-            // Handle the connection in the #handleConnection method below
             handleConnection(connection);
-
-            // Now the connection has been handled and we've sent our reply
-            // -- So now the connection can be closed so we can open more
-            //    sockets in the future
         }
-        System.out.println("HandleConnection has ended!");
+        System.out.println(timeStamp + " HandleConnection has ended!");
     }
-
-    public void sendMessageAll(String msg) throws IOException {
-        for (clientEnt c : bingo) {
-            sendMessage(msg, c.getSock());
-
+    
+    
+    
+    public void sendMessageAll(String msg, Socket s) throws IOException {
+        for (clientEnt c : arrClients) {
+            if(!c.getSock().equals(s)){
+                sendMessage(msg, c.getSock());
+            }
         }
-        System.out.println("Message has been sent to all users!");
+        System.out.println(timeStamp + " Message has been sent to all users!");
     }
 
     public clientEnt returnClientUsername(String username) {
         clientEnt ent = null;
-        for (clientEnt c : bingo) {
+        for (clientEnt c : arrClients) {
             if (c.getUsername().equalsIgnoreCase(username)) {
                 ent = c;
                 break;
@@ -88,7 +102,7 @@ public class serverHandler extends Thread {
 
     public clientEnt returnClientSocket(Socket sock) {
         clientEnt ent = null;
-        for (clientEnt c : bingo) {
+        for (clientEnt c : arrClients) {
             if (c.getSock().equals(sock)) {
                 ent = c;
                 break;
@@ -106,25 +120,25 @@ public class serverHandler extends Thread {
     }
 
     public void sendUpdateUser(String username) throws IOException {
-        for (clientEnt c : bingo) {
+        for (clientEnt c : arrClients) {
             if (!c.getUsername().equalsIgnoreCase(username)) {
                 sendMessage("UPDATE#" + username, c.getSock());
             }
 
         }
-        System.out.println("Message has been sent to all users!");
+        System.out.println(timeStamp + " Message has been sent to all users!");
     }
 
     public void deleteUser(String username) throws IOException {
         clientEnt cc = null;
-        for (clientEnt c : bingo) {
+        for (clientEnt c : arrClients) {
             if (c.getUsername().equalsIgnoreCase(username)) {
                 cc = c;
             } else {
                 sendMessage("DELETE#" + username, c.getSock());
             }
         }
-        bingo.remove(cc);
+        arrClients.remove(cc);
     }
 
     public void handleMessage(String line, Socket connection) throws IOException {
@@ -165,8 +179,9 @@ public class serverHandler extends Thread {
                 } else if (username.equalsIgnoreCase("EVERYONE")) {
                     sendMessage("Username Invalid!", connection);
                 } else {
+                    sendMessage(getUsers(username), connection);
                     client = new clientEnt(connection, username);
-                    bingo.add(client);
+                    arrClients.add(client);
                     sendUpdateUser(username);
                 }
                 break;
@@ -179,14 +194,14 @@ public class serverHandler extends Thread {
                 if (split.length > 2) {
                     String message = split[2];
                     if (username.equalsIgnoreCase("ALL")) {
-                        sendMessageAll(line);
+                        sendMessageAll("MSG#" + returnClientSocket(connection).getUsername() + "#" + message, connection);
                     } else {
                         clientEnt ent = returnClientUsername(username);
                         if (ent == null) {
                             sendMessage("User does not exist!", connection);
                             return;
                         }
-                        sendMessage("MSG#" + username + "#" + message, returnClientUsername(username).getSock());
+                        sendMessage("MSG#" + "*P* From " + returnClientSocket(connection).getUsername() + "#" + message, returnClientUsername(username).getSock());
                     }
                 }
                 break;
@@ -196,7 +211,7 @@ public class serverHandler extends Thread {
     public String removeClient(Socket s) {
         clientEnt ent = null;
         String user = null;
-        for (clientEnt c : bingo) {
+        for (clientEnt c : arrClients) {
             if (c.getSock().equals(s)) {
                 ent = c;
                 user = c.getUsername();
@@ -204,14 +219,14 @@ public class serverHandler extends Thread {
             }
 
         }
-        bingo.remove(ent);
+        arrClients.remove(ent);
         return user;
     }
 
     public void handleConnection(Socket connection) throws IOException {
 
-        if (bingo == null) {
-            bingo = new ArrayList();
+        if (arrClients == null) {
+            arrClients = new ArrayList();
         }
         Thread t1 = new Thread(new Runnable() {
             @Override
@@ -220,7 +235,7 @@ public class serverHandler extends Thread {
                     try {
 //                        System.out.println("Waiting for message...");
                         String msg = readMessage(connection);
-                        System.out.println("Received Message: " + msg);
+                        System.out.println(timeStamp + " Received Message: " + msg);
                         handleMessage(msg, connection);
                     } catch (IOException ex) {
 
@@ -250,9 +265,12 @@ public class serverHandler extends Thread {
 
     }
 
-    public String getUsers(Socket s) {
+    public String getUsers(String username) {
         String result = "OK";
-        for (clientEnt c : bingo) {
+        for (clientEnt c : arrClients) {
+            if(c.getUsername().equalsIgnoreCase(username)){
+                continue;
+            }
             result += "#" + c.getUsername();
         }
         return result;
@@ -261,8 +279,8 @@ public class serverHandler extends Thread {
     public void sendToClient(Socket conn) throws IOException {
         OutputStream output = conn.getOutputStream();
         InputStream input = conn.getInputStream();
-        if (bingo == null) {
-            bingo = new ArrayList();
+        if (arrClients == null) {
+            arrClients = new ArrayList();
         }
         // Read whatever comes in
         String message = "";
@@ -284,7 +302,7 @@ public class serverHandler extends Thread {
     @Override
     public void run() {
         try {
-            startServer("10.8.117.67", 8081);
+            startServer("localhost", 8081);
         } catch (IOException ex) {
             Logger.getLogger(serverHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
