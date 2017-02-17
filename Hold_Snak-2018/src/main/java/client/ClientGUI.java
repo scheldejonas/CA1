@@ -67,6 +67,10 @@ public class ClientGUI extends javax.swing.JFrame {
     }
 
     private String getFinalMessage(String s) {
+        int index = jListUsers.getSelectedIndex();
+        if (index == -1) {
+            jListUsers.setSelectedIndex(0);
+        }
         String receiver = jListUsers.getSelectedValue();
         if (receiver.equals("Everyone")) {
             receiver = "ALL";

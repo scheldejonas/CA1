@@ -34,7 +34,7 @@ public class serverHandler extends Thread {
     saves the username, and the socket used as they connect to the server
     */
     private ArrayList<clientEnt> arrClients;
-    private String timeStamp = new SimpleDateFormat("dd-MM-yyyy --- HH:mm:ss").format(Calendar.getInstance().getTime());
+    private String timeStamp;
 
     public boolean userExistsUsername(String username) {
         for (clientEnt c : arrClients) {
@@ -43,6 +43,10 @@ public class serverHandler extends Thread {
             }
         }
         return false;
+    }
+    
+    public void getTime() {
+        timeStamp = new SimpleDateFormat("dd-MM-yyyy --- HH:mm:ss").format(Calendar.getInstance().getTime());
     }
     
     /*
@@ -142,6 +146,7 @@ public class serverHandler extends Thread {
     }
 
     public void handleMessage(String line, Socket connection) throws IOException {
+        getTime();
 //        System.out.println("Preparing respons");
 //        System.out.println("Handle message: 1");
         if (line.equalsIgnoreCase("exit")) {
@@ -273,6 +278,7 @@ public class serverHandler extends Thread {
             }
             result += "#" + c.getUsername();
         }
+        System.out.println("[serverHandler.getUsers]: " + result);
         return result;
     }
 
@@ -302,7 +308,8 @@ public class serverHandler extends Thread {
     @Override
     public void run() {
         try {
-            startServer("localhost", 8081);
+            getTime();
+            startServer("10.50.130.19", 8081);
         } catch (IOException ex) {
             Logger.getLogger(serverHandler.class.getName()).log(Level.SEVERE, null, ex);
         }

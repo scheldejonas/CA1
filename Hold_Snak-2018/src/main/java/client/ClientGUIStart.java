@@ -131,6 +131,7 @@ public class ClientGUIStart extends javax.swing.JFrame {
                 this.dispose();
             }
         } catch (Exception e){
+            e.printStackTrace();
             JOptionPane.showMessageDialog(null, "Please enter proper information!");
         }
         

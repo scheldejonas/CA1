@@ -1,6 +1,7 @@
 package client;
 
 import client.ClientGUI;
+import exception.UsernameInUseException;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -20,17 +21,17 @@ public class Client {
     private ClientGUI gui;
     private String name;
 
-    public Client(String host, int port, String name) {
+    public Client(String host, int port, String name, ClientGUI gui) throws IOException, UsernameInUseException {
         this.host = host;
         this.port = port;
         this.name = name;
-        try {
-            open();
-            readThread();
-        } catch (IOException ex) {
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        this.gui = gui;
+        String msg = open();
+        if (msg.contains("Username is already in")) {
+            throw new UsernameInUseException(msg);
         }
-        
+        handleMessage(msg);
+        readThread();
     }
 
     public String getName() {
@@ -41,11 +42,17 @@ public class Client {
         return clientSocket.isConnected();
     }
     
-    public void open() throws IOException {
+    public String open() throws IOException {
         clientSocket = new Socket();
         clientSocket.connect(new InetSocketAddress(host, port));
         System.out.println("Client connected to server on port " + port);
         sendMessage("LOGIN#" + name);
+        String msg = readMessage();
+        if (msg.equals("FAIL")) {
+            return "Username is already in use!\n" + 
+                       "Please enter another and try again.";
+        }
+        return msg;
     }
 
     public void addGUI(ClientGUI gui) {
@@ -107,6 +114,7 @@ public class Client {
     }
     
     public void handleMessage(String received) {
+        System.out.println("[Client.handleMessage]: " + received);
         String[] split = received.split("#");
         if (split.length > 1) {
             String command = split[0];
@@ -114,6 +122,7 @@ public class Client {
                 case "OK":
                     for (int i = 1; i < split.length; i++) {
                         gui.addUserToList(split[i]);
+                        System.out.println("Adding user: " + split[i]);
                     }
                     break;
                 
@@ -188,8 +197,8 @@ public class Client {
         t.start();
     }
 
-    public static void main(String[] args) throws IOException {
-        Client client = new Client("83.95.174.124", 8081, "Tester");
+    public static void main(String[] args) throws IOException, UsernameInUseException {
+        Client client = new Client("83.95.174.124", 8081, "Tester", new ClientGUI());
         client.open();
         //System.out.println("1) Opened connection....");
         //client.sendMessage("LOGIN#TEST");
