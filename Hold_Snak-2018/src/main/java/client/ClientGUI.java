@@ -57,7 +57,7 @@ public class ClientGUI extends javax.swing.JFrame {
                 } else {
                     format = "*P* To " + jListUsers.getSelectedValue() + ": " + jTextFieldMessage.getText() + System.lineSeparator();
                 }
-                jTextAreaChat.append(format);
+                //jTextAreaChat.append(format);
                 jTextFieldMessage.setText("");
             } catch (IOException ex) {
                 Logger.getLogger(ClientGUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -74,14 +74,16 @@ public class ClientGUI extends javax.swing.JFrame {
         }
         String receiver = jListUsers.getSelectedValue();
         String msg = "";
+        String secretChar = " ";
         if (receiver.equals("Everyone")) {
             receiver = "ALL";
             msg = "MSG#" + receiver + "#" + s;
         } else {
-            String secretChar = " ";
             msg = "MSG#" + receiver + "#" + s + secretChar;
         }
-        
+        System.out.println("[ClientGUI.getFinalMessage]: " + msg);
+        client.setLastMsgSent(msg.replaceAll(secretChar, ""));
+        client.setLastPerson(receiver);
         return msg;
     }
 

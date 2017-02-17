@@ -86,9 +86,9 @@ public class serverHandler extends Thread {
     
     public void sendMessageAll(String msg, Socket s) throws IOException {
         for (clientEnt c : arrClients) {
-            if(!c.getSock().equals(s)){
+            //if(!c.getSock().equals(s)){
                 sendMessage(msg, c.getSock());
-            }
+            //}
         }
         System.out.println(timeStamp + " Message has been sent to all users!");
     }
@@ -199,7 +199,6 @@ public class serverHandler extends Thread {
                 if (split.length > 2) {
                     String message = split[2];
                     String myUser = returnClientSocket(connection).getUsername();
-                    Socket privateSocket = returnClientUsername(username).getSock();
                     if (username.equalsIgnoreCase("ALL")) {
                         sendMessageAll("MSG#" + myUser + "#" + message, connection);
                     } else {
@@ -208,7 +207,8 @@ public class serverHandler extends Thread {
                             sendMessage("User does not exist!", connection);
                             return;
                         }
-                        sendMessage("MSG#" + myUser + "#" + message, privateSocket);
+                        sendMessage("MSG#" + myUser + "#" + message, returnClientUsername(username).getSock());
+                        sendMessage("MSG#" + username + "#" + message, connection);
                     }
                 }
                 break;
