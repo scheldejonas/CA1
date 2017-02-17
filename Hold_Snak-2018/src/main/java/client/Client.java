@@ -1,14 +1,11 @@
 package client;
 
-import client.ClientGUI;
 import exception.UsernameInUseException;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * A client which connects to a server.
@@ -20,6 +17,7 @@ public class Client {
     private Socket clientSocket;
     private ClientGUI gui;
     private String name;
+    private String lastMsgSent, lastPerson;
 
     public Client(String host, int port, String name, ClientGUI gui) throws IOException, UsernameInUseException {
         this.host = host;
@@ -121,18 +119,34 @@ public class Client {
             switch (command.toUpperCase()) {
                 case "OK":
                     for (int i = 1; i < split.length; i++) {
-                        gui.addUserToList(split[i]);
-                        System.out.println("Adding user: " + split[i]);
+                        String user = split[i];
+                        if (!user.equals(name)) {
+                            gui.addUserToList(split[i]);
+                            //System.out.println("Adding user: " + split[i]);
+                        }
                     }
                     break;
                 
                 case "UPDATE":
-                    gui.addUserToList(split[1]);
+                    if (!split[1].equals(name)) {
+                        gui.addUserToList(split[1]);
+                    }
                     break;
                     
                 case "MSG":
                     String sender = split[1];
                     String msg = split[2];
+                    String secretChar = " ";
+                    if (msg.contains(secretChar)) {
+                        System.out.println("[client.handleMessage]: lastMsg: " + lastMsgSent + ", received: " + received);
+                        if (received.replaceAll(secretChar, "").equals(lastMsgSent)) {
+                            gui.readMessage("*P* To " + lastPerson + ": " + msg.replaceAll(secretChar, "") + System.lineSeparator());
+                        } else {
+                            //System.out.println("NOT SAME! " + msg + ", " + lastMsgSent);
+                            gui.readMessage("*P* From " + sender + ": " + msg.replaceAll(secretChar, "") + System.lineSeparator());
+                        }
+                        break;
+                    }
                     gui.readMessage(sender + ": " + msg + System.lineSeparator());
                     break;
                     
@@ -195,6 +209,22 @@ public class Client {
         };
         Thread t = new Thread(r);
         t.start();
+    }
+
+    public String getLastMsgSent() {
+        return lastMsgSent;
+    }
+
+    public void setLastMsgSent(String lastMsgSent) {
+        this.lastMsgSent = lastMsgSent;
+    }
+
+    public String getLastPerson() {
+        return lastPerson;
+    }
+
+    public void setLastPerson(String lastPerson) {
+        this.lastPerson = lastPerson;
     }
 
     public static void main(String[] args) throws IOException, UsernameInUseException {
