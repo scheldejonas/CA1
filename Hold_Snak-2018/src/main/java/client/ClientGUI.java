@@ -48,6 +48,7 @@ public class ClientGUI extends javax.swing.JFrame {
                 return;
             }
             String endMsg = getFinalMessage(msg);
+            System.out.println("clientGui.sendMessage: " + endMsg);
             try {
                 client.sendMessage(endMsg);
                 String format = "";
@@ -72,10 +73,15 @@ public class ClientGUI extends javax.swing.JFrame {
             jListUsers.setSelectedIndex(0);
         }
         String receiver = jListUsers.getSelectedValue();
+        String msg = "";
         if (receiver.equals("Everyone")) {
             receiver = "ALL";
+            msg = "MSG#" + receiver + "#" + s;
+        } else {
+            String secretChar = " ";
+            msg = "MSG#" + receiver + "#" + s + secretChar;
         }
-        String msg = "MSG#" + receiver + "#" + s;
+        
         return msg;
     }
 

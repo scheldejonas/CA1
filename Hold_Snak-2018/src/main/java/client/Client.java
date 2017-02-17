@@ -133,6 +133,11 @@ public class Client {
                 case "MSG":
                     String sender = split[1];
                     String msg = split[2];
+                    String secretChar = " ";
+                    if (msg.contains(secretChar)) {
+                        gui.readMessage("*P* From " + sender + ": " + msg.replaceAll(secretChar, "") + System.lineSeparator());
+                        break;
+                    }
                     gui.readMessage(sender + ": " + msg + System.lineSeparator());
                     break;
                     

@@ -198,15 +198,17 @@ public class serverHandler extends Thread {
                 }
                 if (split.length > 2) {
                     String message = split[2];
+                    String myUser = returnClientSocket(connection).getUsername();
+                    Socket privateSocket = returnClientUsername(username).getSock();
                     if (username.equalsIgnoreCase("ALL")) {
-                        sendMessageAll("MSG#" + returnClientSocket(connection).getUsername() + "#" + message, connection);
+                        sendMessageAll("MSG#" + myUser + "#" + message, connection);
                     } else {
                         clientEnt ent = returnClientUsername(username);
                         if (ent == null) {
                             sendMessage("User does not exist!", connection);
                             return;
                         }
-                        sendMessage("MSG#" + "*P* From " + returnClientSocket(connection).getUsername() + "#" + message, returnClientUsername(username).getSock());
+                        sendMessage("MSG#" + myUser + "#" + message, privateSocket);
                     }
                 }
                 break;
